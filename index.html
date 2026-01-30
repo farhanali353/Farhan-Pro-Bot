@@ -5,72 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Omni-Sync | Farhan Ali</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00a884">
     <style>
-        :root { --wa-green: #00a884; --wa-dark: #0b141a; --wa-panel: #202c33; --text-gray: #8696a0; }
-        body { background: var(--wa-dark); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        :root { --wa-green: #00a884; --wa-dark: #0b141a; --wa-panel: #202c33; }
+        body { background: var(--wa-dark); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
-        #splash { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.5; }
-        .ceo-title { font-size: 35px; font-weight: 900; background: linear-gradient(to right, #00a884, #fff, #00a884); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* 1. STYLISH SPLASH SCREEN (Sab se pehle ye ayega) */
+        #splash { 
+            position: fixed; inset: 0; background: #000; z-index: 9999; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            transition: opacity 0.8s ease-out;
+        }
+        .logo-icon { font-size: 70px; margin-bottom: 20px; animation: pulse 2s infinite; }
+        .prep-text { color: #8696a0; letter-spacing: 5px; font-size: 12px; margin-bottom: 10px; }
+        .ceo-title { 
+            font-size: 35px; font-weight: 900; letter-spacing: 2px;
+            background: linear-gradient(to right, #00a884, #ffffff, #00a884);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 168, 132, 0.5);
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Registration & Main App */
+        #regScreen, #mainApp { height: 100vh; display: flex; flex-direction: column; }
+        input#userName { background: #2a3942; border: 1px solid var(--wa-green); padding: 15px; border-radius: 10px; color: white; width: 80%; text-align: center; margin-bottom: 20px; outline: none; }
+        .start-btn { background: var(--wa-green); border: none; padding: 15px 50px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+        
         header { background: var(--wa-panel); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .scan-btn { background: var(--wa-green); border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-        #installBanner { background: #1c262d; padding: 15px; border-top: 2px solid var(--wa-green); position: fixed; bottom: 0; width: 100%; display: none; }
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
+        .message { padding: 12px; margin: 5px; border-radius: 10px; max-width: 80%; font-size: 15px; background: #005c4b; align-self: flex-end; }
     </style>
 </head>
 <body>
 
     <div id="splash">
+        <div class="logo-icon">🌐</div>
+        <div class="prep-text">PREPARED BY</div>
         <div class="ceo-title">FARHAN ALI</div>
-        <div style="color: #555; margin-top: 10px;">OMNI-SYNC MESH v1.0</div>
+    </div>
+
+    <div id="regScreen" class="hidden" style="align-items: center; justify-content: center; text-align: center; padding: 20px;">
+        <h2 style="color: var(--wa-green);">Omni-Sync Mesh</h2>
+        <p style="color: #8696a0;">Enter name to activate your node</p>
+        <input type="text" id="userName" placeholder="Your Name">
+        <button class="start-btn" onclick="saveName()">ACTIVATE</button>
     </div>
 
     <div id="mainApp" class="hidden">
         <header>
-            <span style="color: var(--wa-green); font-size: 20px; font-weight: bold;">Omni-Sync</span>
-            <button class="scan-btn" onclick="startRealScan()">🔍 SCAN</button>
+            <div>
+                <div style="font-size: 8px; color: var(--wa-green);">PREPARED BY</div>
+                <div style="font-weight: bold; font-size: 18px;">FARHAN ALI</div>
+            </div>
+            <button onclick="connectMesh()" style="background:var(--wa-green); border:none; padding:8px 15px; border-radius:20px; font-weight:bold;">SCAN</button>
         </header>
-        <div id="meshList" style="padding: 20px; text-align: center; color: var(--text-gray);">
-            Searching for nearby mesh nodes...
+        <div id="chatBox">
+            <div class="message" style="background:none; border:1px solid #333; align-self:center; font-size:11px; color:#8696a0;">
+                Mesh active. Connection secured by Bluetooth.
+            </div>
         </div>
-    </div>
-
-    <div id="installBanner">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span>Install Omni-Sync App?</span>
-            <button onclick="installApp()" style="background:var(--wa-green); border:none; padding:8px 15px; border-radius:5px; font-weight:bold;">INSTALL</button>
+        <div style="background: var(--wa-panel); padding: 10px; display: flex; align-items: center;">
+            <input type="text" id="msgInput" placeholder="Mesh message..." style="flex:1; background:#2a3942; border:none; padding:12px; border-radius:25px; color:white; outline:none;">
+            <button onclick="sendMessage()" style="background:var(--wa-green); border:none; width:45px; height:45px; border-radius:50%; margin-left:10px; font-size:20px;">✈</button>
         </div>
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-
-        setTimeout(() => {
-            document.getElementById('splash').style.opacity = '0';
+        // Splash Screen Timer (3 seconds)
+        window.onload = function() {
             setTimeout(() => {
-                document.getElementById('splash').style.display = 'none';
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    checkUserStatus();
+                }, 800); 
+            }, 3000);
+        };
+
+        function checkUserStatus() {
+            const savedName = localStorage.getItem('omni_user_name');
+            if (!savedName) {
+                document.getElementById('regScreen').classList.remove('hidden');
+            } else {
                 document.getElementById('mainApp').classList.remove('hidden');
-            }, 500);
-        }, 3000);
-
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBanner').style.display = 'block';
-        });
-
-        async function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                document.getElementById('installBanner').style.display = 'none';
             }
         }
 
-        async function startRealScan() {
-            try {
-                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-                alert("Node Connected: " + device.name);
-            } catch (e) { alert("Bluetooth scan cancelled."); }
+        function saveName() {
+            const name = document.getElementById('userName').value;
+            if (name.trim().length >= 2) {
+                localStorage.setItem('omni_user_name', name);
+                document.getElementById('regScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            }
+        }
+
+        async function connectMesh() {
+            try { await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); } catch (e) {}
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('msgInput');
+            if (input.value.trim() === "") return;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            msgDiv.innerText = input.value;
+            document.getElementById('chatBox').appendChild(msgDiv);
+            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+            input.value = "";
         }
     </script>
 </body>
