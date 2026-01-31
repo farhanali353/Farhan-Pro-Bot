@@ -3,108 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omni-Sync Global | Farhan Ali</title>
+    <title>Omni-Sync | CEO Farhan Ali</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
     <style>
         :root { --wa-green: #00a884; --wa-dark: #111b21; --wa-panel: #202c33; }
-        body { margin: 0; background: var(--wa-dark); color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .hidden { display: none !important; }
-        #splash { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ceo-name { font-size: 32px; font-weight: 900; color: var(--wa-green); text-shadow: 0 0 15px var(--wa-green); }
-        header { background: var(--wa-panel); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; background: #0b141a; display: flex; flex-direction: column; }
-        .bubble { padding: 10px; margin: 5px; border-radius: 10px; max-width: 80%; font-size: 14px; position: relative; }
-        .sent { background: #005c4b; align-self: flex-end; }
-        .received { background: #232d36; align-self: flex-start; }
-        .img-msg { width: 100%; border-radius: 8px; margin-top: 5px; }
-        .input-bar { background: var(--wa-panel); padding: 10px; display: flex; gap: 10px; align-items: center; }
-        input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
+        body { margin:0; background:var(--wa-dark); color:white; font-family:sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+        header { background:var(--wa-panel); padding:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; }
+        .hidden { display:none !important; }
+        #userList { flex:1; overflow-y:auto; padding:10px; }
+        .user-card { background:#1e2a30; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; align-items:center; gap:15px; border:1px solid #333; }
+        .avatar { width:45px; height:45px; border-radius:50%; background:var(--wa-green); display:flex; align-items:center; justify-content:center; color:black; font-weight:bold; }
+        #loginOverlay { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+        input { padding:12px; border-radius:8px; border:none; width:260px; outline:none; }
+        button { padding:12px 30px; background:var(--wa-green); border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
     </style>
 </head>
 <body>
 
-    <div id="splash">
-        <div style="color:#8696a0; letter-spacing:5px; font-size:10px;">PREPARED BY</div>
-        <div class="ceo-name">FARHAN ALI</div>
+    <div id="loginOverlay">
+        <h1 style="color:var(--wa-green); margin:0;">OMNI-SYNC</h1>
+        <p style="color:#8696a0;">Global Network Scanner</p>
+        <input type="text" id="userName" placeholder="Enter Your Name...">
+        <button onclick="joinNetwork()">JOIN LIVE CHAT</button>
+        <p style="font-size:12px; color:#444;">Farhan Ali Project</p>
     </div>
 
-    <div id="mainApp" style="display:flex; flex-direction:column; height:100vh;">
-        <header>
-            <div style="font-weight:bold;">Omni-Sync <span style="color:var(--wa-green)">LIVE</span></div>
-            <div style="font-size: 12px; color: #8696a0;">Farhan Ali Project</div>
-        </header>
+    <header>
+        <div style="font-weight:bold; color:var(--wa-green); font-size:18px;">Omni-Sync Pro</div>
+        <input type="text" id="findUser" placeholder="Search Global Users..." onkeyup="search()" style="width:45%; padding:6px; border-radius:20px; background:#2a3942; color:white; border:none;">
+    </header>
 
-        <div id="messages"></div>
-
-        <div class="input-bar">
-            <label for="fIn" style="cursor:pointer; font-size:22px;">📎</label>
-            <input type="file" id="fIn" style="display:none" accept="image/*,video/*" onchange="uploadFile(this)">
-            <input type="text" id="mIn" placeholder="Type message...">
-            <button onclick="sendText()" style="background:var(--wa-green); border:none; width:45px; height:45px; border-radius:50%;">✈</button>
-        </div>
+    <div id="userList">
+        <p style="text-align:center; color:#8696a0; margin-top:20px;">Scanning for active users...</p>
     </div>
 
     <script>
-        // Aapka Firebase Code (Already Applied!)
+        // Farhan bhai ki Config
         const firebaseConfig = {
             apiKey: "AIzaSyDSBjud7mbGqACBs80582RUy4-A-p_jR70",
             authDomain: "omnisync-92600.firebaseapp.com",
             projectId: "omnisync-92600",
-            storageBucket: "omnisync-92600.firebasestorage.app",
-            messagingSenderId: "144024375181",
             appId: "1:144024375181:web:073eec8256ed14c46f04c6"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
-        setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 3000);
-
-        // Send Text Message
-        function sendText() {
-            const txt = document.getElementById('mIn').value;
-            if(!txt) return;
-            db.collection("chats").add({
-                text: txt,
-                type: 'text',
-                time: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('mIn').value = "";
+        function joinNetwork() {
+            const name = document.getElementById('userName').value;
+            if(!name) return;
+            localStorage.setItem('omni_name', name);
+            // User ko database mein register karein
+            db.collection("global_users").doc(name).set({ name: name, status: 'Online', lastActive: Date.now() });
+            document.getElementById('loginOverlay').classList.add('hidden');
         }
 
-        // Upload Picture/Video
-        async function uploadFile(input) {
-            const file = input.files[0];
-            if(!file) return;
-            alert("Farhan Ali bhai, File upload ho rahi hai...");
-            const ref = storage.ref('omni/' + Date.now() + "_" + file.name);
-            await ref.put(file);
-            const url = await ref.getDownloadURL();
-            db.collection("chats").add({
-                url: url,
-                type: file.type.startsWith('image') ? 'img' : 'vid',
-                time: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        // Real-time Display
-        db.collection("chats").orderBy("time").onSnapshot(snap => {
-            const box = document.getElementById('messages');
-            box.innerHTML = "";
+        // Live User Scanner
+        db.collection("global_users").onSnapshot(snap => {
+            const list = document.getElementById('userList');
+            list.innerHTML = "";
             snap.forEach(doc => {
-                const d = doc.data();
-                const div = document.createElement('div');
-                div.className = 'bubble sent';
-                if(d.type === 'img') div.innerHTML = `<img src="${d.url}" class="img-msg">`;
-                else if(d.type === 'vid') div.innerHTML = `<video src="${d.url}" controls class="img-msg"></video>`;
-                else div.innerText = d.text;
-                box.appendChild(div);
+                const u = doc.data();
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `<div class="avatar">${u.name[0].toUpperCase()}</div><div><b>${u.name}</b><br><small style="color:var(--wa-green)">Active Now</small></div>`;
+                list.appendChild(card);
             });
-            box.scrollTop = box.scrollHeight;
         });
+
+        function search() {
+            let val = document.getElementById('findUser').value.toLowerCase();
+            let cards = document.getElementsByClassName('user-card');
+            for(let c of cards) { c.style.display = c.innerText.toLowerCase().includes(val) ? "" : "none"; }
+        }
     </script>
 </body>
 </html>
