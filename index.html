@@ -2,80 +2,124 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omni-Sync | CEO Farhan Ali</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni-Sync Pro | Farhan Ali</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --wa-green: #00a884; --wa-dark: #111b21; --wa-panel: #202c33; }
-        body { margin:0; background:var(--wa-dark); color:white; font-family:sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
-        header { background:var(--wa-panel); padding:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; }
-        .hidden { display:none !important; }
-        #userList { flex:1; overflow-y:auto; padding:10px; }
-        .user-card { background:#1e2a30; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; align-items:center; gap:15px; border:1px solid #333; }
-        .avatar { width:45px; height:45px; border-radius:50%; background:var(--wa-green); display:flex; align-items:center; justify-content:center; color:black; font-weight:bold; }
-        #loginOverlay { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
-        input { padding:12px; border-radius:8px; border:none; width:260px; outline:none; }
-        button { padding:12px 30px; background:var(--wa-green); border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+        :root { --green: #00a884; --dark: #111b21; --panel: #202c33; }
+        body { margin:0; background:var(--dark); color:white; font-family:sans-serif; display:flex; flex-direction:column; height:100vh; }
+        header { background:var(--panel); padding:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; }
+        #mainContainer { flex:1; display:flex; overflow:hidden; }
+        #userList { width:100%; overflow-y:auto; background:var(--dark); }
+        .user-card { padding:15px; border-bottom:1px solid #222; cursor:pointer; display:flex; align-items:center; gap:10px; }
+        .user-card:hover { background:#2a3942; }
+        #chatArea { display:none; flex-direction:column; width:100%; position:fixed; inset:0; background:var(--dark); z-index:10; }
+        #messages { flex:1; overflow-y:auto; padding:15px; }
+        .msg { background:var(--green); padding:8px 12px; border-radius:10px; margin-bottom:10px; align-self: flex-start; max-width:80%; }
+        .img-msg { max-width:100%; border-radius:10px; margin-top:5px; }
+        .input-bar { background:var(--panel); padding:10px; display:flex; align-items:center; gap:10px; }
+        input[type="text"] { flex:1; padding:10px; border-radius:20px; border:none; outline:none; background:#2a3942; color:white; }
+        .icon-btn { cursor:pointer; font-size:20px; }
+        .hidden { display:none; }
     </style>
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <h1 style="color:var(--wa-green); margin:0;">OMNI-SYNC</h1>
-        <p style="color:#8696a0;">Global Network Scanner</p>
-        <input type="text" id="userName" placeholder="Enter Your Name...">
-        <button onclick="joinNetwork()">JOIN LIVE CHAT</button>
-        <p style="font-size:12px; color:#444;">Farhan Ali Project</p>
-    </div>
+<header>
+    <div id="headerTitle">Omni-Sync Global</div>
+    <div style="font-size:12px; opacity:0.6;">CEO: Farhan Ali</div>
+</header>
 
-    <header>
-        <div style="font-weight:bold; color:var(--wa-green); font-size:18px;">Omni-Sync Pro</div>
-        <input type="text" id="findUser" placeholder="Search Global Users..." onkeyup="search()" style="width:45%; padding:6px; border-radius:20px; background:#2a3942; color:white; border:none;">
-    </header>
-
+<div id="mainContainer">
     <div id="userList">
-        <p style="text-align:center; color:#8696a0; margin-top:20px;">Scanning for active users...</p>
+        <p style="text-align:center; padding:20px; color:#8696a0;">Scanning for users...</p>
     </div>
+</div>
 
-    <script>
-        // Farhan bhai ki Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSBjud7mbGqACBs80582RUy4-A-p_jR70",
-            authDomain: "omnisync-92600.firebaseapp.com",
-            projectId: "omnisync-92600",
-            appId: "1:144024375181:web:073eec8256ed14c46f04c6"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<div id="chatArea">
+    <header>
+        <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:20px;">←</button>
+        <b id="activeTarget">User Name</b>
+        <div></div>
+    </header>
+    <div id="messages"></div>
+    <div class="input-bar">
+        <label class="icon-btn">📎<input type="file" id="mediaInput" class="hidden" accept="image/*" onchange="uploadMedia()"></label>
+        <input type="text" id="msgInput" placeholder="Type a message...">
+        <button onclick="sendMsg()" style="background:var(--green); border:none; padding:8px 15px; border-radius:50%; color:white;">➔</button>
+    </div>
+</div>
 
-        function joinNetwork() {
-            const name = document.getElementById('userName').value;
-            if(!name) return;
-            localStorage.setItem('omni_name', name);
-            // User ko database mein register karein
-            db.collection("global_users").doc(name).set({ name: name, status: 'Online', lastActive: Date.now() });
-            document.getElementById('loginOverlay').classList.add('hidden');
-        }
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDSBjud7mbGqACBs80582RUy4-A-p_jR70",
+        authDomain: "omnisync-92600.firebaseapp.com",
+        projectId: "omnisync-92600",
+        appId: "1:144024375181:web:073eec8256ed14c46f04c6"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let currentUser = "Farhan Ali"; // Aap isay dynamic bhi kar sakte hain
+    let chatTarget = "";
 
-        // Live User Scanner
-        db.collection("global_users").onSnapshot(snap => {
-            const list = document.getElementById('userList');
-            list.innerHTML = "";
-            snap.forEach(doc => {
-                const u = doc.data();
-                const card = document.createElement('div');
-                card.className = 'user-card';
-                card.innerHTML = `<div class="avatar">${u.name[0].toUpperCase()}</div><div><b>${u.name}</b><br><small style="color:var(--wa-green)">Active Now</small></div>`;
-                list.appendChild(card);
-            });
+    // Global User List
+    db.collection("users").onSnapshot(snap => {
+        const list = document.getElementById('userList');
+        list.innerHTML = "";
+        snap.forEach(doc => {
+            const u = doc.data();
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.innerHTML = `<div style="width:40px;height:40px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;">${u.name[0]}</div> <b>${u.name}</b>`;
+            div.onclick = () => openChat(u.name);
+            list.appendChild(div);
         });
+    });
 
-        function search() {
-            let val = document.getElementById('findUser').value.toLowerCase();
-            let cards = document.getElementsByClassName('user-card');
-            for(let c of cards) { c.style.display = c.innerText.toLowerCase().includes(val) ? "" : "none"; }
+    function openChat(name) {
+        chatTarget = name;
+        document.getElementById('activeTarget').innerText = name;
+        document.getElementById('chatArea').style.display = 'flex';
+        loadMessages();
+    }
+
+    function closeChat() { document.getElementById('chatArea').style.display = 'none'; }
+
+    function loadMessages() {
+        db.collection("chats").orderBy("time").onSnapshot(snap => {
+            const box = document.getElementById('messages');
+            box.innerHTML = "";
+            snap.forEach(doc => {
+                const m = doc.data();
+                if((m.from == currentUser && m.to == chatTarget) || (m.from == chatTarget && m.to == currentUser)) {
+                    const content = m.type == 'image' ? `<img src="${m.url}" class="img-msg">` : m.text;
+                    box.innerHTML += `<div class="msg"><b>${m.from}:</b><br>${content}</div>`;
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    async function uploadMedia() {
+        const file = document.getElementById('mediaInput').files[0];
+        if(!file) return;
+        // ImgBB API for Free Hosting
+        let formData = new FormData();
+        formData.append("image", file);
+        const res = await fetch("https://api.imgbb.com/1/upload?key=YOUR_FREE_API_KEY", { method: "POST", body: formData });
+        const data = await res.json();
+        if(data.success) {
+            db.collection("chats").add({ from: currentUser, to: chatTarget, type: 'image', url: data.data.url, time: Date.now() });
         }
-    </script>
+    }
+
+    function sendMsg() {
+        const text = document.getElementById('msgInput').value;
+        if(!text || !chatTarget) return;
+        db.collection("chats").add({ from: currentUser, to: chatTarget, text: text, type: 'text', time: Date.now() });
+        document.getElementById('msgInput').value = "";
+    }
+</script>
 </body>
 </html>
