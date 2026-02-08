@@ -1,13 +1,13 @@
 {
-  "name": "Omni-Sync Mesh",
-  "short_name": "OmniSync",
+  "name": "Farhan Pro Bot",
+  "short_name Farhan Bot",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0b141a",
   "theme_color": "#00a884",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/564/564445.png",
+      "srchttps://i.ibb.co/GfGypBGD/intelligent-robot-500x500.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }
