@@ -1,25 +1,27 @@
-// Farhan Pro Bot - Online Service Worker
-const CACHE_NAME = 'farhan-bot-online-v1';
+const CACHE_NAME = 'farhan-pro-bot-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  'https://i.ibb.co/GfGypBGD/intelligent-robot-500x500.jpg'
+];
 
-// Install Event
-self.addEventListener('install', (event) => {
-  console.log('Farhan Pro Bot: Service Worker Installing...');
-  self.skipWaiting(); // Naye version ko foran install karega
+// Install process
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
+  );
 });
 
-// Activate Event
-self.addEventListener('activate', (event) => {
-  console.log('Farhan Pro Bot: Service Worker Active');
-  event.waitUntil(clients.claim()); // Foran control sambhaal lega
-});
-
-// Fetch Event: Direct Online Request
-self.addEventListener('fetch', (event) => {
-  // Ye line app ko hamesha internet se naya data lene par majboor karegi
+// Fetch event (Install button ke liye zaroori hai)
+self.addEventListener('fetch', event => {
   event.respondWith(
-    fetch(event.request).catch(() => {
-      // Agar internet na ho toh cache se check karega
-      return caches.match(event.request);
-    })
+    caches.match(event.request)
+      .then(response => {
+        return response || fetch(event.request);
+      })
   );
 });
