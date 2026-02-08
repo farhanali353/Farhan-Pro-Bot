@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FARHAN PRO BOT</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#05080a">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/GfGypBGD/intelligent-robot-500x500.jpg">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap');
 
@@ -220,7 +225,6 @@
                 loader.style.display = "none";
                 status.style.display = "none";
                 
-                // 80-90% Accuracy Simulation Logic
                 const isUp = Math.random() > 0.45;
                 const accuracy = (84 + Math.random() * 11).toFixed(1);
 
@@ -232,6 +236,15 @@
                 
                 signalBox.style.display = "block";
             }, 2000);
+        }
+
+        // Service Worker registration (Install button ke liye zaroori)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Bot Active'))
+                    .catch(err => console.log('Error', err));
+            });
         }
     </script>
 </body>
